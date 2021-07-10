@@ -1,0 +1,715 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DB_URL")
+}
+
+model admin {
+  id         Int     @id @default(autoincrement())
+  user_id    Int
+  first_name String  @db.VarChar(255)
+  last_name  String  @db.VarChar(255)
+  nic        String? @db.VarChar(20)
+  contact    String  @db.VarChar(50)
+  role_id    Int
+  role       role    @relation(fields: [role_id], references: [id])
+  user       user    @relation(fields: [user_id], references: [id])
+
+  @@index([role_id], name: "role_id")
+  @@index([user_id], name: "user_id")
+}
+
+model advert {
+  id              Int               @id @default(autoincrement())
+  user_id         Int
+  name            String            @db.VarChar(150)
+  max_ads         Int               @default(3)
+  enabled         Boolean           @default(true)
+  created_at      DateTime          @default(now()) @db.DateTime(0)
+  updated_at      DateTime          @default(now()) @db.DateTime(0)
+  user            user              @relation(fields: [user_id], references: [id])
+  advert_clicks   advert_clicks[]
+  advert_views    advert_views[]
+  external_advert external_advert[]
+  listing_advert  listing_advert[]
+
+  @@index([user_id], name: "user_id")
+}
+
+model advert_clicks {
+  id                 Int      @id @default(autoincrement())
+  advert_id          Int
+  is_registered_user Boolean  @default(false)
+  device_id          String?  @db.VarChar(255)
+  user_id            Int?
+  created_at         DateTime @default(now()) @db.DateTime(0)
+  advert             advert   @relation(fields: [advert_id], references: [id])
+  user               user?    @relation(fields: [user_id], references: [id])
+
+  @@index([advert_id], name: "advert_id")
+  @@index([user_id], name: "user_id")
+}
+
+model advert_views {
+  id                 Int      @id @default(autoincrement())
+  advert_id          Int
+  is_registered_user Boolean  @default(false)
+  device_id          String?  @db.VarChar(255)
+  user_id            Int?
+  created_at         DateTime @default(now()) @db.DateTime(0)
+  advert             advert   @relation(fields: [advert_id], references: [id])
+  user               user?    @relation(fields: [user_id], references: [id])
+
+  @@index([advert_id], name: "advert_id")
+  @@index([user_id], name: "user_id")
+}
+
+model blog {
+  id                 Int                  @id @default(autoincrement())
+  user_id            Int
+  content            String?              @db.Text
+  featured_image     String?              @db.VarChar(255)
+  keywords           String?              @db.VarChar(255)
+  created_at         DateTime             @default(now()) @db.DateTime(0)
+  updated_at         DateTime             @default(now()) @db.DateTime(0)
+  user               user                 @relation(fields: [user_id], references: [id])
+  meta_blog_amenity  meta_blog_amenity[]
+  meta_blog_category meta_blog_category[]
+  meta_blog_label    meta_blog_label[]
+  meta_blog_type     meta_blog_type[]
+
+  @@index([user_id], name: "user_id")
+}
+
+model boosting {
+  id                Int                 @id @default(autoincrement())
+  user_id           Int
+  name              String              @db.VarChar(150)
+  max_boosts        Int                 @default(3)
+  enabled           Boolean             @default(true)
+  created_at        DateTime            @default(now()) @db.DateTime(0)
+  updated_at        DateTime            @default(now()) @db.DateTime(0)
+  user              user                @relation(fields: [user_id], references: [id])
+  marquee_boosting  marquee_boosting[]
+  property_boosting property_boosting[]
+
+  @@index([user_id], name: "user_id")
+}
+
+model external_advert {
+  id             Int         @id @default(autoincrement())
+  user_id        Int
+  advert_id      Int
+  transaction_id Int
+  enabled        Boolean     @default(true)
+  duration       Int
+  web_banner     String      @db.VarChar(255)
+  mobile_banner  String      @db.VarChar(255)
+  redirect_url   String      @db.VarChar(255)
+  starting_at    DateTime    @default(now()) @db.DateTime(0)
+  expires_at     DateTime    @default(now()) @db.DateTime(0)
+  created_at     DateTime    @default(now()) @db.DateTime(0)
+  updated_at     DateTime    @default(now()) @db.DateTime(0)
+  advert         advert      @relation(fields: [advert_id], references: [id])
+  transaction    transaction @relation(fields: [transaction_id], references: [id])
+  user           user        @relation(fields: [user_id], references: [id])
+
+  @@index([advert_id], name: "advert_id")
+  @@index([transaction_id], name: "transaction_id")
+  @@index([user_id], name: "user_id")
+}
+
+model header {
+  id                        Int              @id @default(autoincrement())
+  to_id                     Int
+  from_id                   Int
+  subject_id                Int
+  status                    header_status    @default(unknown)
+  created_at                DateTime         @default(now()) @db.DateTime(0)
+  updated_at                DateTime         @default(now()) @db.DateTime(0)
+  user_header_from_idTouser user             @relation("header_from_idTouser", fields: [from_id], references: [id])
+  listing_property          listing_property @relation(fields: [subject_id], references: [id])
+  user_header_to_idTouser   user             @relation("header_to_idTouser", fields: [to_id], references: [id])
+  message                   message[]
+
+  @@index([from_id], name: "from_id")
+  @@index([subject_id], name: "subject_id")
+  @@index([to_id], name: "to_id")
+}
+
+model lister {
+  id                        Int                @id @default(autoincrement())
+  user_id                   Int
+  first_name                String             @db.VarChar(255)
+  last_name                 String             @db.VarChar(255)
+  nic                       String?            @db.VarChar(20)
+  contact                   String             @db.VarChar(50)
+  business_name             String             @db.VarChar(255)
+  business_website          String?            @db.VarChar(255)
+  business_registration     String             @db.VarChar(255)
+  business_logo             String             @db.VarChar(255)
+  business_email            String             @db.VarChar(255)
+  business_proof_of_billing String             @db.VarChar(255)
+  user                      user               @relation(fields: [user_id], references: [id])
+  listing_marquee           listing_marquee[]
+  listing_property          listing_property[]
+
+  @@index([user_id], name: "user_id")
+}
+
+model listing_advert {
+  id               Int              @id @default(autoincrement())
+  user_id          Int
+  listing_id       Int
+  advert_id        Int
+  transaction_id   Int
+  enabled          Boolean          @default(true)
+  duration         Int
+  web_banner       String           @db.VarChar(255)
+  mobile_banner    String           @db.VarChar(255)
+  redirect_url     String           @db.VarChar(255)
+  starting_at      DateTime         @default(now()) @db.DateTime(0)
+  expires_at       DateTime         @default(now()) @db.DateTime(0)
+  created_at       DateTime         @default(now()) @db.DateTime(0)
+  updated_at       DateTime         @default(now()) @db.DateTime(0)
+  advert           advert           @relation(fields: [advert_id], references: [id])
+  listing_property listing_property @relation(fields: [listing_id], references: [id])
+  transaction      transaction      @relation(fields: [transaction_id], references: [id])
+  user             user             @relation(fields: [user_id], references: [id])
+
+  @@index([advert_id], name: "advert_id")
+  @@index([listing_id], name: "listing_id")
+  @@index([transaction_id], name: "transaction_id")
+  @@index([user_id], name: "user_id")
+}
+
+model listing_clicks {
+  id                 Int              @id @default(autoincrement())
+  listing_id         Int
+  is_registered_user Boolean          @default(false)
+  device_id          String?          @db.VarChar(255)
+  user_id            Int?
+  created_at         DateTime         @default(now()) @db.DateTime(0)
+  listing_property   listing_property @relation(fields: [listing_id], references: [id])
+  user               user?            @relation(fields: [user_id], references: [id])
+
+  @@index([listing_id], name: "listing_id")
+  @@index([user_id], name: "user_id")
+}
+
+model listing_marquee {
+  id                    Int                       @id @default(autoincrement())
+  lister_id             Int
+  name                  String                    @db.VarChar(255)
+  price                 Float
+  area_type             listing_marquee_area_type @default(full)
+  area_size             Float
+  location_address      String?                   @db.VarChar(255)
+  location_lat          Float
+  location_long         Float
+  country_id            Int
+  content_header        String?                   @db.Text
+  content_section_one   String?                   @db.Text
+  content_section_two   String?                   @db.Text
+  content_section_three String?                   @db.Text
+  content_section_four  String?                   @db.Text
+  content_footer        String?                   @db.Text
+  redirect_url          String                    @db.VarChar(255)
+  keywords              String?                   @db.Text
+  created_at            DateTime                  @default(now()) @db.DateTime(0)
+  updated_at            DateTime                  @default(now()) @db.DateTime(0)
+  status                listing_marquee_status    @default(created)
+  meta_country          meta_country              @relation(fields: [country_id], references: [id])
+  lister                lister                    @relation(fields: [lister_id], references: [id])
+  marquee_boosting      marquee_boosting[]
+  meta_marquee_amenity  meta_marquee_amenity[]
+  meta_marquee_category meta_marquee_category[]
+  meta_marquee_label    meta_marquee_label[]
+  meta_marquee_type     meta_marquee_type[]
+
+  @@index([country_id], name: "country_id")
+  @@index([lister_id], name: "lister_id")
+}
+
+model listing_property {
+  id                     Int                        @id @default(autoincrement())
+  lister_id              Int
+  name                   String                     @db.VarChar(255)
+  price                  Float
+  area_type              listing_property_area_type @default(full)
+  area_size              Float
+  location_address       String?                    @db.VarChar(255)
+  location_lat           Float
+  location_long          Float
+  country_id             Int
+  keywords               String?                    @db.Text
+  created_at             DateTime                   @default(now()) @db.DateTime(0)
+  updated_at             DateTime                   @default(now()) @db.DateTime(0)
+  status                 listing_property_status    @default(created)
+  meta_country           meta_country               @relation(fields: [country_id], references: [id])
+  lister                 lister                     @relation(fields: [lister_id], references: [id])
+  header                 header[]
+  listing_advert         listing_advert[]
+  listing_clicks         listing_clicks[]
+  listing_views          listing_views[]
+  meta_property_amenity  meta_property_amenity[]
+  meta_property_category meta_property_category[]
+  meta_property_label    meta_property_label[]
+  meta_property_type     meta_property_type[]
+  property_boosting      property_boosting[]
+
+  @@index([country_id], name: "country_id")
+  @@index([lister_id], name: "lister_id")
+}
+
+model listing_views {
+  id                 Int              @id @default(autoincrement())
+  listing_id         Int
+  is_registered_user Boolean          @default(false)
+  device_id          String?          @db.VarChar(255)
+  user_id            Int?
+  created_at         DateTime         @default(now()) @db.DateTime(0)
+  listing_property   listing_property @relation(fields: [listing_id], references: [id])
+  user               user?            @relation(fields: [user_id], references: [id])
+
+  @@index([listing_id], name: "listing_id")
+  @@index([user_id], name: "user_id")
+}
+
+model log {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  action     String   @db.VarChar(255)
+  payload    String   @db.Text
+  created_at DateTime @default(now()) @db.DateTime(0)
+  updated_at DateTime @default(now()) @db.DateTime(0)
+  user       user     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], name: "user_id")
+}
+
+model marquee_boosting {
+  id              Int             @id @default(autoincrement())
+  user_id         Int
+  boosting_id     Int
+  marquee_id      Int
+  transaction_id  Int
+  starting_at     DateTime        @default(now()) @db.DateTime(0)
+  expires_at      DateTime        @default(now()) @db.DateTime(0)
+  created_at      DateTime        @default(now()) @db.DateTime(0)
+  updated_at      DateTime        @default(now()) @db.DateTime(0)
+  boosting        boosting        @relation(fields: [boosting_id], references: [id])
+  listing_marquee listing_marquee @relation(fields: [marquee_id], references: [id])
+  transaction     transaction     @relation(fields: [transaction_id], references: [id])
+  user            user            @relation(fields: [user_id], references: [id])
+
+  @@index([boosting_id], name: "boosting_id")
+  @@index([marquee_id], name: "marquee_id")
+  @@index([transaction_id], name: "transaction_id")
+  @@index([user_id], name: "user_id")
+}
+
+model member {
+  id         Int     @id @default(autoincrement())
+  user_id    Int
+  first_name String  @db.VarChar(255)
+  last_name  String  @db.VarChar(255)
+  nic        String? @db.VarChar(20)
+  contact    String  @db.VarChar(50)
+  user       user    @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], name: "user_id")
+}
+
+model message {
+  id         Int            @id @default(autoincrement())
+  header_id  Int
+  content    String?        @db.LongText
+  attachment String?        @db.VarChar(255)
+  status     message_status @default(unknown)
+  created_at DateTime       @default(now()) @db.DateTime(0)
+  updated_at DateTime       @default(now()) @db.DateTime(0)
+  header     header         @relation(fields: [header_id], references: [id])
+
+  @@index([header_id], name: "header_id")
+}
+
+model meta_amenity {
+  id                    Int                     @id @default(autoincrement())
+  name                  String                  @db.VarChar(150)
+  slug                  String                  @db.VarChar(255)
+  description           String?                 @db.VarChar(255)
+  is_listing            Boolean                 @default(true)
+  created_at            DateTime                @default(now()) @db.DateTime(0)
+  updated_at            DateTime                @default(now()) @db.DateTime(0)
+  meta_blog_amenity     meta_blog_amenity[]
+  meta_marquee_amenity  meta_marquee_amenity[]
+  meta_property_amenity meta_property_amenity[]
+}
+
+model meta_blog_amenity {
+  id           Int          @id @default(autoincrement())
+  blog_id      Int
+  amenity_id   Int
+  created_at   DateTime     @default(now()) @db.DateTime(0)
+  meta_amenity meta_amenity @relation(fields: [amenity_id], references: [id])
+  blog         blog         @relation(fields: [blog_id], references: [id])
+
+  @@index([amenity_id], name: "amenity_id")
+  @@index([blog_id], name: "blog_id")
+}
+
+model meta_blog_category {
+  id            Int           @id @default(autoincrement())
+  blog_id       Int
+  category_id   Int
+  created_at    DateTime      @default(now()) @db.DateTime(0)
+  blog          blog          @relation(fields: [blog_id], references: [id])
+  meta_category meta_category @relation(fields: [category_id], references: [id])
+
+  @@index([blog_id], name: "blog_id")
+  @@index([category_id], name: "category_id")
+}
+
+model meta_blog_label {
+  id         Int        @id @default(autoincrement())
+  blog_id    Int
+  label_id   Int
+  created_at DateTime   @default(now()) @db.DateTime(0)
+  blog       blog       @relation(fields: [blog_id], references: [id])
+  meta_label meta_label @relation(fields: [label_id], references: [id])
+
+  @@index([blog_id], name: "blog_id")
+  @@index([label_id], name: "label_id")
+}
+
+model meta_blog_type {
+  id         Int       @id @default(autoincrement())
+  blog_id    Int
+  type_id    Int
+  created_at DateTime  @default(now()) @db.DateTime(0)
+  blog       blog      @relation(fields: [blog_id], references: [id])
+  meta_type  meta_type @relation(fields: [type_id], references: [id])
+
+  @@index([blog_id], name: "blog_id")
+  @@index([type_id], name: "type_id")
+}
+
+model meta_category {
+  id                     Int                      @id @default(autoincrement())
+  name                   String                   @db.VarChar(150)
+  slug                   String                   @db.VarChar(255)
+  description            String?                  @db.VarChar(255)
+  is_listing             Boolean                  @default(true)
+  created_at             DateTime                 @default(now()) @db.DateTime(0)
+  updated_at             DateTime                 @default(now()) @db.DateTime(0)
+  meta_blog_category     meta_blog_category[]
+  meta_marquee_category  meta_marquee_category[]
+  meta_property_category meta_property_category[]
+}
+
+model meta_country {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(150)
+  code             String             @db.VarChar(5)
+  slug             String             @db.VarChar(255)
+  description      String?            @db.VarChar(255)
+  created_at       DateTime           @default(now()) @db.DateTime(0)
+  updated_at       DateTime           @default(now()) @db.DateTime(0)
+  listing_marquee  listing_marquee[]
+  listing_property listing_property[]
+}
+
+model meta_label {
+  id                  Int                   @id @default(autoincrement())
+  name                String                @db.VarChar(150)
+  slug                String                @db.VarChar(255)
+  description         String?               @db.VarChar(255)
+  is_listing          Boolean               @default(true)
+  created_at          DateTime              @default(now()) @db.DateTime(0)
+  updated_at          DateTime              @default(now()) @db.DateTime(0)
+  meta_blog_label     meta_blog_label[]
+  meta_marquee_label  meta_marquee_label[]
+  meta_property_label meta_property_label[]
+}
+
+model meta_marquee_amenity {
+  id              Int             @id @default(autoincrement())
+  marquee_id      Int
+  amenity_id      Int
+  created_at      DateTime        @default(now()) @db.DateTime(0)
+  meta_amenity    meta_amenity    @relation(fields: [amenity_id], references: [id])
+  listing_marquee listing_marquee @relation(fields: [marquee_id], references: [id])
+
+  @@index([amenity_id], name: "amenity_id")
+  @@index([marquee_id], name: "marquee_id")
+}
+
+model meta_marquee_category {
+  id              Int             @id @default(autoincrement())
+  marquee_id      Int
+  category_id     Int
+  created_at      DateTime        @default(now()) @db.DateTime(0)
+  meta_category   meta_category   @relation(fields: [category_id], references: [id])
+  listing_marquee listing_marquee @relation(fields: [marquee_id], references: [id])
+
+  @@index([category_id], name: "category_id")
+  @@index([marquee_id], name: "marquee_id")
+}
+
+model meta_marquee_label {
+  id              Int             @id @default(autoincrement())
+  marquee_id      Int
+  label_id        Int
+  created_at      DateTime        @default(now()) @db.DateTime(0)
+  meta_label      meta_label      @relation(fields: [label_id], references: [id])
+  listing_marquee listing_marquee @relation(fields: [marquee_id], references: [id])
+
+  @@index([label_id], name: "label_id")
+  @@index([marquee_id], name: "marquee_id")
+}
+
+model meta_marquee_type {
+  id              Int             @id @default(autoincrement())
+  marquee_id      Int
+  type_id         Int
+  created_at      DateTime        @default(now()) @db.DateTime(0)
+  listing_marquee listing_marquee @relation(fields: [marquee_id], references: [id])
+  meta_type       meta_type       @relation(fields: [type_id], references: [id])
+
+  @@index([marquee_id], name: "marquee_id")
+  @@index([type_id], name: "type_id")
+}
+
+model meta_property_amenity {
+  id               Int              @id @default(autoincrement())
+  property_id      Int
+  amenity_id       Int
+  created_at       DateTime         @db.DateTime(0)
+  meta_amenity     meta_amenity     @relation(fields: [amenity_id], references: [id])
+  listing_property listing_property @relation(fields: [property_id], references: [id])
+
+  @@index([amenity_id], name: "amenity_id")
+  @@index([property_id], name: "property_id")
+}
+
+model meta_property_category {
+  id               Int              @id @default(autoincrement())
+  property_id      Int
+  category_id      Int
+  created_at       DateTime         @default(now()) @db.DateTime(0)
+  meta_category    meta_category    @relation(fields: [category_id], references: [id])
+  listing_property listing_property @relation(fields: [property_id], references: [id])
+
+  @@index([category_id], name: "category_id")
+  @@index([property_id], name: "property_id")
+}
+
+model meta_property_label {
+  id               Int              @id @default(autoincrement())
+  property_id      Int
+  label_id         Int
+  created_at       DateTime         @default(now()) @db.DateTime(0)
+  meta_label       meta_label       @relation(fields: [label_id], references: [id])
+  listing_property listing_property @relation(fields: [property_id], references: [id])
+
+  @@index([label_id], name: "label_id")
+  @@index([property_id], name: "property_id")
+}
+
+model meta_property_type {
+  id               Int              @id @default(autoincrement())
+  property_id      Int
+  type_id          Int
+  created_at       DateTime         @default(now()) @db.DateTime(0)
+  listing_property listing_property @relation(fields: [property_id], references: [id])
+  meta_type        meta_type        @relation(fields: [type_id], references: [id])
+
+  @@index([property_id], name: "property_id")
+  @@index([type_id], name: "type_id")
+}
+
+model meta_type {
+  id                 Int                  @id @default(autoincrement())
+  name               String               @db.VarChar(150)
+  slug               String               @db.VarChar(255)
+  description        String?              @db.VarChar(255)
+  is_listing         Boolean              @default(true)
+  created_at         DateTime             @default(now()) @db.DateTime(0)
+  updated_at         DateTime             @default(now()) @db.DateTime(0)
+  meta_blog_type     meta_blog_type[]
+  meta_marquee_type  meta_marquee_type[]
+  meta_property_type meta_property_type[]
+}
+
+model permission {
+  id              Int               @id @default(autoincrement())
+  permission      String            @db.VarChar(100)
+  slug            String            @db.VarChar(150)
+  description     String?           @db.VarChar(255)
+  active          Boolean?          @default(true)
+  created_at      DateTime          @default(now()) @db.DateTime(0)
+  updated_at      DateTime          @default(now()) @db.DateTime(0)
+  role_permission role_permission[]
+}
+
+model property_boosting {
+  id               Int              @id @default(autoincrement())
+  user_id          Int
+  boosting_id      Int
+  listing_id       Int
+  transaction_id   Int
+  starting_at      DateTime         @default(now()) @db.DateTime(0)
+  expires_at       DateTime         @default(now()) @db.DateTime(0)
+  created_at       DateTime         @default(now()) @db.DateTime(0)
+  updated_at       DateTime         @default(now()) @db.DateTime(0)
+  boosting         boosting         @relation(fields: [boosting_id], references: [id])
+  listing_property listing_property @relation(fields: [listing_id], references: [id])
+  transaction      transaction      @relation(fields: [transaction_id], references: [id])
+  user             user             @relation(fields: [user_id], references: [id])
+
+  @@index([boosting_id], name: "boosting_id")
+  @@index([listing_id], name: "listing_id")
+  @@index([transaction_id], name: "transaction_id")
+  @@index([user_id], name: "user_id")
+}
+
+model role {
+  id              Int               @id @default(autoincrement())
+  role            String            @db.VarChar(100)
+  slug            String            @db.VarChar(150)
+  description     String?           @db.VarChar(255)
+  active          Boolean?          @default(true)
+  created_at      DateTime          @default(now()) @db.DateTime(0)
+  updated_at      DateTime          @default(now()) @db.DateTime(0)
+  admin           admin[]
+  role_permission role_permission[]
+}
+
+model role_permission {
+  id            Int        @id @default(autoincrement())
+  role_id       Int
+  permission_id Int
+  created_at    DateTime   @default(now()) @db.DateTime(0)
+  updated_at    DateTime   @default(now()) @db.DateTime(0)
+  permission    permission @relation(fields: [permission_id], references: [id])
+  role          role       @relation(fields: [role_id], references: [id])
+
+  @@index([permission_id], name: "permission_id")
+  @@index([role_id], name: "role_id")
+}
+
+model transaction {
+  id                Int                 @id @default(autoincrement())
+  user_id           Int
+  total_cost        Float
+  tax               Float
+  status            transaction_status  @default(unknown)
+  created_at        DateTime            @default(now()) @db.DateTime(0)
+  updated_at        DateTime            @default(now()) @db.DateTime(0)
+  user              user                @relation(fields: [user_id], references: [id])
+  external_advert   external_advert[]
+  listing_advert    listing_advert[]
+  marquee_boosting  marquee_boosting[]
+  property_boosting property_boosting[]
+
+  @@index([user_id], name: "user_id")
+}
+
+model user {
+  id                          Int                 @id @default(autoincrement())
+  username                    String              @db.VarChar(100)
+  email                       String              @db.VarChar(255)
+  password                    String              @db.VarChar(255)
+  is_app_installed            Boolean             @default(false)
+  enabled                     Boolean             @default(true)
+  verified                    Boolean             @default(false)
+  last_active                 DateTime            @default(now()) @db.DateTime(0)
+  created_at                  DateTime            @default(now()) @db.DateTime(0)
+  updated_at                  DateTime            @default(now()) @db.DateTime(0)
+  admin                       admin[]
+  advert                      advert[]
+  advert_clicks               advert_clicks[]
+  advert_views                advert_views[]
+  blog                        blog[]
+  boosting                    boosting[]
+  external_advert             external_advert[]
+  header_header_from_idTouser header[]            @relation("header_from_idTouser")
+  header_header_to_idTouser   header[]            @relation("header_to_idTouser")
+  lister                      lister[]
+  listing_advert              listing_advert[]
+  listing_clicks              listing_clicks[]
+  listing_views               listing_views[]
+  log                         log[]
+  marquee_boosting            marquee_boosting[]
+  member                      member[]
+  property_boosting           property_boosting[]
+  transaction                 transaction[]
+  user_session                user_session[]
+}
+
+model user_session {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  start_time DateTime @db.DateTime(0)
+  end_time   DateTime @db.DateTime(0)
+  user       user     @relation(fields: [user_id], references: [id])
+
+  @@index([user_id], name: "user_id")
+}
+
+enum header_status {
+  unknown
+  delivered
+  opened
+  replied
+  deleted
+}
+
+enum listing_marquee_area_type {
+  full
+  square_feet
+  perch
+  acre
+  hectare
+}
+
+enum listing_marquee_status {
+  created
+  approved
+  deleted
+  expired
+}
+
+enum listing_property_area_type {
+  full
+  square_feet
+  perch
+  acre
+  hectare
+}
+
+enum listing_property_status {
+  created
+  approved
+  deleted
+  expired
+}
+
+enum message_status {
+  unknown
+  sent
+  delivered
+  read
+}
+
+enum transaction_status {
+  unknown
+  initiated
+  success
+  failed
+  cancelled
+}
