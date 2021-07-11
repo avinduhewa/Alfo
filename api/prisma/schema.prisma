@@ -8,17 +8,19 @@ datasource db {
 }
 
 model user {
-  id            Int           @id @default(autoincrement())
-  username      String        @db.VarChar(255)
-  email         String        @db.VarChar(255)
-  password_hash String        @db.Text
-  first_name    String        @db.VarChar(255)
-  last_name     String        @db.VarChar(255)
-  created_at    DateTime      @default(now()) @db.DateTime(0)
-  updated_at    DateTime      @default(now()) @db.DateTime(0)
-  challenge     challenge[]
-  user_task     user_task[]
-  user_reward   user_reward[]
+  id            Int              @id @default(autoincrement())
+  username      String           @db.VarChar(255)
+  email         String           @db.VarChar(255)
+  password_hash String           @db.Text
+  first_name    String           @db.VarChar(255)
+  last_name     String           @db.VarChar(255)
+  created_at    DateTime         @default(now()) @db.DateTime(0)
+  updated_at    DateTime         @default(now()) @db.DateTime(0)
+  enforcer      user_challenge[] @relation("challenge_enforcer")
+  enforced      user_challenge[] @relation("challenger")
+
+  user_task   user_task[]
+  user_reward user_reward[]
 }
 
 model task {
@@ -51,22 +53,33 @@ model challenge {
   description String         @db.Text
   task_id     Int
   reward_id   Int
-  enforcer_id Int
-  enforced_id Int
   type        challenge_type @default(unknown)
   created_at  DateTime       @default(now()) @db.DateTime(0)
   updated_at  DateTime       @default(now()) @db.DateTime(0)
-  is_public   Boolean        @default(false)
   task        task           @relation(fields: [task_id], references: [id])
   reward      reward         @relation(fields: [reward_id], references: [id])
-  enforced    user           @relation(fields: [enforced_id], references: [id])
+
 
   @@index([task_id], name: "task_id")
   @@index([reward_id], name: "reward_id")
+  user_challenge   user_challenge[]
   challenge_task   challenge_task[]
   challenge_reward challenge_reward[]
   user_task        user_task[]
   user_reward      user_reward[]
+}
+
+model user_challenge {
+  id           Int       @id @default(autoincrement())
+  challenge_id Int
+  enforcer_id  Int
+  enforced_id  Int
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime  @default(now()) @db.DateTime(0)
+  is_public    Boolean   @default(false)
+  challenge    challenge @relation(fields: [challenge_id], references: [id])
+  enforcer     user      @relation("challenge_enforcer", fields: [enforcer_id], references: [id])
+  enforced     user      @relation("challenger", fields: [enforced_id], references: [id])
 }
 
 model challenge_task {
