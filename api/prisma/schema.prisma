@@ -6,3 +6,139 @@ datasource db {
   provider = "mysql"
   url      = env("DB_URL")
 }
+
+model user {
+  id            Int           @id @default(autoincrement())
+  username      String        @db.VarChar(255)
+  email         String        @db.VarChar(255)
+  password_hash String        @db.Text
+  first_name    String        @db.VarChar(255)
+  last_name     String        @db.VarChar(255)
+  created_at    DateTime      @default(now()) @db.DateTime(0)
+  updated_at    DateTime      @default(now()) @db.DateTime(0)
+  challenge     challenge[]
+  user_task     user_task[]
+  user_reward   user_reward[]
+}
+
+model task {
+  id             Int              @id @default(autoincrement())
+  name           String           @db.VarChar(255)
+  description    String           @db.Text
+  type           task_type        @default(unknown)
+  created_by     Int
+  created_at     DateTime         @default(now()) @db.DateTime(0)
+  updated_at     DateTime         @default(now()) @db.DateTime(0)
+  challenge      challenge[]
+  challenge_task challenge_task[]
+}
+
+model reward {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(255)
+  description      String             @db.Text
+  type             reward_type        @default(unknown)
+  created_by       Int
+  created_at       DateTime           @default(now()) @db.DateTime(0)
+  updated_at       DateTime           @default(now()) @db.DateTime(0)
+  challenge        challenge[]
+  challenge_reward challenge_reward[]
+}
+
+model challenge {
+  id          Int            @id @default(autoincrement())
+  name        String         @db.VarChar(255)
+  description String         @db.Text
+  task_id     Int
+  reward_id   Int
+  enforcer_id Int
+  enforced_id Int
+  type        challenge_type @default(unknown)
+  created_at  DateTime       @default(now()) @db.DateTime(0)
+  updated_at  DateTime       @default(now()) @db.DateTime(0)
+  is_public   Boolean        @default(false)
+  task        task           @relation(fields: [task_id], references: [id])
+  reward      reward         @relation(fields: [reward_id], references: [id])
+  enforced    user           @relation(fields: [enforced_id], references: [id])
+
+  @@index([task_id], name: "task_id")
+  @@index([reward_id], name: "reward_id")
+  challenge_task   challenge_task[]
+  challenge_reward challenge_reward[]
+  user_task        user_task[]
+  user_reward      user_reward[]
+}
+
+model challenge_task {
+  id               Int              @id @default(autoincrement())
+  challenge_id     Int
+  task_id          Int
+  starting_val     Int              @default(0)
+  increment_val    Int              @default(0)
+  increment_ceil   Int
+  increment_method increment_method @default(unknown)
+  challenge        challenge        @relation(fields: [challenge_id], references: [id])
+  task             task             @relation(fields: [task_id], references: [id])
+}
+
+model challenge_reward {
+  id                Int       @id @default(autoincrement())
+  challenge_id      Int
+  reward_id         Int
+  unlockable_amount Int
+  challenge         challenge @relation(fields: [challenge_id], references: [id])
+  reward            reward    @relation(fields: [reward_id], references: [id])
+}
+
+model user_task {
+  id              Int       @id @default(autoincrement())
+  user_id         Int
+  challenge_id    Int
+  attempted_value Int
+  rewards         Int
+  verified        Boolean
+  user            user      @relation(fields: [user_id], references: [id])
+  challenge       challenge @relation(fields: [challenge_id], references: [id])
+}
+
+model user_reward {
+  id               Int       @id @default(autoincrement())
+  user_id          Int
+  challenge_id     Int
+  rewards_received Int
+  rewards_utilized Int
+  user             user      @relation(fields: [user_id], references: [id])
+  challenge        challenge @relation(fields: [challenge_id], references: [id])
+}
+
+enum challenge_type {
+  unknown
+  single
+  couple
+  group
+}
+
+enum task_type {
+  unknown
+  count
+  time
+  hybrid
+  custom
+}
+
+enum reward_type {
+  unknown
+  count
+  time
+  hybrid
+  custom
+}
+
+enum increment_method {
+  unknown
+  linear
+  exponential
+  multiply
+  hybrid
+  custom
+}
